@@ -25,8 +25,6 @@ function getRandomId(min, max) {
 function getDummyEmail() {
 	var site = sites[getRandomId(0, 3)];
 
-	console.log(site);
-
 	var start = moment();
 	start.minute(0);
 	start.second(0);
@@ -63,33 +61,88 @@ function getDummyEmail() {
 
 function insertEmail() {
 	if (emailsCreated < 20) {
-		emailQueue.insert(getDummyEmail(), function () {});
+		var em = getDummyEmail();
+		console.log('InsertEmail: ' + em._id);
+		emailQueue.insert(em, function () {});
 	}
 }
 
-function processEmailLoop() {
+function processPopEmail() {
 	emailQueue.findOne({QueueState: 0}, function (err, doc) {
 		assert.equal(err, null);
 		if (doc) {
+			console.log('Populating Email: ' + doc._id);
 			if (doc.EmailData.PopulationStartTime === null ) {
-				//emailQueue.update({_id: doc._id}, {$set: {QueueState: 1}}, function () {});
 				emailQueue.update({_id: doc._id}, {$set: {'EmailData.PopulationStartTime': new Date()}}, function () {});
 			} else if (doc.EmailData.PopulationEndTime === null) {
-				if (moment(doc.EmailData.PopulationStartTime).add(3, 's').isBefore(new Date())) {
+				var ranSec = getRandomId(2, 6);
+				if (moment(doc.EmailData.PopulationStartTime).add(ranSec, 's').isBefore(new Date())) {
 					emailQueue.update({_id: doc._id}, {$set: {'EmailData.PopulationEndTime': new Date(), QueueState: 1}}, function () {});
 				}
 			}
 		}
-
 	});
+
+
+}
+
+function processEmailSend(id) {
+	emailQueue.findOne({QueueState: 1, _id: {$ne: id}}, function (err, doc) {
+		assert.equal(err, null);
+		if (doc) {
+			// Process records.
+			var emailProc = getRandomId(5, 20),
+					emailDif = doc.EmailData.RecipientCount - doc.EmailData.TotalEmails,
+					func = null,
+					emailInc = emailProc;
+
+			if (doc.EmailData.EmailStartTime === null) {
+				func = startEmail;
+			} else if (emailDif > emailProc) {
+				func = incEmail;
+			} else {
+				emailInc = emailDif;
+				func = compEmail;
+			}
+
+			func(doc._id, emailInc, function (err) {
+				assert.equal(err, null);
+
+				if (id === 0) {
+					processEmailSend(doc._id);
+				}
+			});
+		}
+	});
+}
+
+function startEmail(id, emailInc, cb) {
+	console.log('Starting email send: ' + id);
+	emailQueue.update({_id: id}, {$set: {'EmailData.EmailStartTime': new Date()}}, cb);
+}
+
+function incEmail(id, emailInc, cb) {
+	console.log('Sending ' + emailInc + ' for email: ' + id);
+	emailQueue.update({_id: id}, {$inc: {'EmailData.TotalEmails': emailInc}}, cb);
+}
+
+function compEmail(id, emailInc, cb) {
+	console.log('Completing email send: ' + id);
+	emailQueue.update({_id: id}, {$inc: {'EmailData.TotalEmails': emailInc},
+		$set: {
+			QueueState: 2,
+			'EmailData.EmailEndTime': new Date(),
+			'EmailData.EndTime': new Date()
+		}}, cb);
 }
 
 
 function processLoop() {
 	insertEmail();
-	processEmailLoop();
+	processPopEmail();
+	processEmailSend(0);
 
-	emailQueue.findOne({QueueState: {$lt: 1}}, function (err, doc) {
+	emailQueue.findOne({QueueState: {$lt: 2}}, function (err, doc) {
 		assert.equal(err, null);
 
 		if (doc || emailsCreated < 20) {
