@@ -16,7 +16,12 @@ var url = 'mongodb://localhost:3001/meteor',
 		],
 		db,
 		emailQueue,
+		emailsToSend = 20,
 		emailsCreated = 0;
+
+if (process.argv.length >= 3) {
+	emailsToSend = parseInt(process.argv[2]);
+}
 
 function getRandomId(min, max) {
 	return Math.floor(Math.random() * max) + min;
@@ -60,7 +65,7 @@ function getDummyEmail() {
 }
 
 function insertEmail() {
-	if (emailsCreated < 20) {
+	if (emailsCreated < emailsToSend) {
 		var em = getDummyEmail();
 		console.log('InsertEmail: ' + em._id);
 		emailQueue.insert(em, function () {});
@@ -145,7 +150,7 @@ function processLoop() {
 	emailQueue.findOne({QueueState: {$lt: 2}}, function (err, doc) {
 		assert.equal(err, null);
 
-		if (doc || emailsCreated < 20) {
+		if (doc || emailsCreated < emailsToSend) {
 			setTimeout(processLoop, 500, db);
 		} else {
 			db.close();
