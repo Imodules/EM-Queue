@@ -6,14 +6,14 @@
 Meteor.startup(function () {
 	var sites = [-10010, -10025];
 
-	Collections.EmailQueue.remove({});
-
-	if (Collections.EmailQueue.find().count() === 0) {
-		for (var i=0; i<20; i++) {
-			var sid = i % 2 === 0 ? sites[0] : sites[1];
-			inserDummyData(i, 1, sid, getRandomId(), getRandomId());
-		}
-	}
+	//Collections.EmailQueue.remove({});
+	//
+	//if (Collections.EmailQueue.find().count() === 0) {
+	//	for (var i=0; i<20; i++) {
+	//		var sid = i % 2 === 0 ? sites[0] : sites[1];
+	//		inserDummyData(i, 1, sid, getRandomId(), getRandomId());
+	//	}
+	//}
 
 });
 

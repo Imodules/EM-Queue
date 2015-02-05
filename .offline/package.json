@@ -1,0 +1,10 @@
+{
+  "name": "EM-Query-Offline",
+  "version": "0.0.1",
+  "description": "Offline processing for the EM Queue",
+  "author": "Paul Stuart <pstuart2@gmail.com>",
+  "dependencies": {
+    "moment": "^2.9.0",
+    "mongodb": "^1.4.30"
+  }
+}
