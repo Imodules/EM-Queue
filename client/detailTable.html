@@ -1,0 +1,48 @@
+<template name="detailTable">
+	<table class="table table-striped">
+		<thead>
+			<tr>
+				<th>Wave</th>
+				<th>Site Id</th>
+				<th>EIID</th>
+				<th>Status</th>
+				<th>Start Time</th>
+				<th>End Time</th>
+				<th>Queued Time</th>
+				<th>Population Time</th>
+				<th>Execution Time</th>
+				<th>Email Body Length</th>
+				<th>Recipient Count</th>
+				<th>Emails Proc</th>
+				<th>Emails / Sec</th>
+				<th>Pct Complete</th>
+				<th>Est Completion</th>
+			</tr>
+		</thead>
+		<tbody>
+			{{#each rows}}
+					{{> detailRow}}
+			{{/each}}
+		</tbody>
+	</table>
+</template>
+
+<template name="detailRow">
+	<tr>
+		<td>{{Wave}}</td>
+		<td>{{SiteInfoId}}</td>
+		<td>{{EmailInstanceId}}</td>
+		<td>{{QueueState}}</td>
+		<td>{{formatDate EmailData.StartTime}}</td>
+		<td>{{formatDate EmailData.EndTime}}</td>
+		<td>{{queueTime}}</td>
+		<td>{{populationTime}}</td>
+		<td>{{executionTime}}</td>
+		<td>{{EmailData.EmailBodyLength}}</td>
+		<td>{{EmailData.RecipientCount}}</td>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+	</tr>
+</template>
