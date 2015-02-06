@@ -1,0 +1,28 @@
+<template name="summary">
+	<table class="table table-striped">
+		<thead>
+		<tr>
+			<th>Wave</th>
+			<th>Started</th>
+			<th>Completed</th>
+			<th>Total Emails</th>
+		</tr>
+		</thead>
+		<tbody>
+		{{#each waves}}
+			{{> summaryRow}}
+		{{/each}}
+		</tbody>
+	</table>
+</template>
+
+<template name="summaryRow">
+	{{#with myData}}
+	<tr>
+		<td>{{wave.name}}</td>
+		<td>{{formatDate start}}</td>
+		<td>{{formatDate end}}</td>
+		<td>{{totalEmails}}</td>
+	</tr>
+	{{/with}}
+</template>

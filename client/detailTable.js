@@ -5,6 +5,10 @@
 'use strict';
 Template.detailTable.helpers({
 	rows: function() {
+		if (Session.equals('IncompleteOnly', true)) {
+			return Collections.EmailQueue.find({QueueState: {$lt: 2}});
+		}
+
 		return Collections.EmailQueue.find();
 	}
 });

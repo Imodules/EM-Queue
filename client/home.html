@@ -2,7 +2,24 @@
 	<div class="container-fluid">
 		<div class="row">
 			<div class="col-xs-12">
+				<div class="btn-group" data-toggle="buttons">
+					<label class="btn btn-default {{amIChecked 'all'}}">
+						<input type="radio" name="filterAll" id="optAll" autocomplete="off" checked> Show All
+					</label>
+					<label class="btn btn-default {{amIChecked 'inc'}}">
+						<input type="radio" name="filterAll" id="optInc" autocomplete="off"> Incomplete Only
+					</label>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-12">
 				{{> detailTable}}
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-12">
+				{{> summary}}
 			</div>
 		</div>
 	</div>

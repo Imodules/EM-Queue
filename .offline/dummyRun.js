@@ -74,7 +74,7 @@ function insertEmail() {
 
 function processPopEmail() {
 	emailQueue.findOne({QueueState: 0}, function (err, doc) {
-		assert.equal(err, null);
+		if (err) { return; }
 		if (doc) {
 			console.log('Populating Email: ' + doc._id);
 			if (doc.EmailData.PopulationStartTime === null ) {
@@ -93,7 +93,7 @@ function processPopEmail() {
 
 function processEmailSend(id) {
 	emailQueue.findOne({QueueState: 1, _id: {$ne: id}}, function (err, doc) {
-		assert.equal(err, null);
+		if (err) { return; }
 		if (doc) {
 			// Process records.
 			var emailProc = getRandomId(5, 20),
@@ -144,11 +144,12 @@ function compEmail(id, emailInc, cb) {
 
 function processLoop() {
 	insertEmail();
-	processPopEmail();
-	processEmailSend(0);
 
 	emailQueue.findOne({QueueState: {$lt: 2}}, function (err, doc) {
 		assert.equal(err, null);
+
+		processPopEmail();
+		processEmailSend(0);
 
 		if (doc || emailsCreated < emailsToSend) {
 			setTimeout(processLoop, 500, db);
