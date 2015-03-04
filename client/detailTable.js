@@ -6,10 +6,10 @@
 Template.detailTable.helpers({
 	rows: function() {
 		if (Session.equals('IncompleteOnly', true)) {
-			return Collections.EmailQueue.find({QueueState: {$lt: 2}}, {sort: {DateAdded: -1}});
+			return Collections.EmailQueue.find({QueueState: {$lt: 2}}, {sort: {DateAdded: 1}});
 		}
 
-		return Collections.EmailQueue.find({}, {sort: {DateAdded: -1}});
+		return Collections.EmailQueue.find({}, {sort: {DateAdded: 1}});
 	}
 });
 
@@ -33,14 +33,15 @@ Template.detailRow.helpers({
 		return moment.utc(moment(this.EmailData.EmailEndTime).diff(moment(this.EmailData.EmailStartTime))).format('HH:mm:ss');
 	},
     emailsPerSecond: function() {
-        var exTimeInSeconds = moment(this.EmailData.EmailEndTime).diff(moment(this.EmailData.EmailStartTime), 'seconds');
+        var time = this.EmailData.EmailEndTime === null ? new Date() : this.EmailData.EmailEndTime;
+        var exTimeInSeconds = moment(time).diff(moment(this.EmailData.EmailStartTime), 'seconds');
         if (exTimeInSeconds <= 0) {
             return 0;
         }
-        return this.EmailData.TotalEmails / exTimeInSeconds;
+        return Math.floor(this.EmailData.TotalEmails / exTimeInSeconds);
     },
     percentComplete: function() {
-        return (this.EmailData.RecipientCount / this.EmailData.TotalEmails * 100).toFixed() + '%';
+        return (this.EmailData.TotalEmails / this.EmailData.RecipientCount  * 100).toFixed() + '%';
     },
     estimatedCompletion: function() {
         var emailsLeft = this.EmailData.RecipientCount - this.EmailData.TotalEmails;
