@@ -41,8 +41,10 @@
 		<td>{{EmailData.EmailBodyLength}}</td>
 		<td>{{EmailData.RecipientCount}}</td>
 		<td>{{EmailData.TotalEmails}}</td>
+		{{#with myCalcs}}
 		<td>{{emailsPerSecond}}</td>
 		<td>{{percentComplete}}</td>
 		<td>{{estimatedCompletion}}</td>
+		{{/with}}
 	</tr>
 </template>
