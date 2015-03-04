@@ -32,19 +32,20 @@ Template.detailRow.helpers({
         }
 		return moment.utc(moment(this.EmailData.EmailEndTime).diff(moment(this.EmailData.EmailStartTime))).format('HH:mm:ss');
 	},
-    emailsPerSecond: function() {
-        var time = this.EmailData.EmailEndTime === null ? new Date() : this.EmailData.EmailEndTime;
-        var exTimeInSeconds = moment(time).diff(moment(this.EmailData.EmailStartTime), 'seconds');
-        if (exTimeInSeconds <= 0) {
-            return 0;
-        }
-        return Math.floor(this.EmailData.TotalEmails / exTimeInSeconds);
-    },
-    percentComplete: function() {
-        return (this.EmailData.TotalEmails / this.EmailData.RecipientCount  * 100).toFixed() + '%';
-    },
-    estimatedCompletion: function() {
-        var emailsLeft = this.EmailData.RecipientCount - this.EmailData.TotalEmails;
-        return emailsLeft;
-    }
+  emailsPerSecond: function() {
+      var time = this.EmailData.EmailEndTime === null ? new Date() : this.EmailData.EmailEndTime;
+      var exTimeInSeconds = moment(time).diff(moment(this.EmailData.EmailStartTime), 'seconds');
+      if (isNaN(exTimeInSeconds) || exTimeInSeconds <= 0) {
+          return 0;
+      }
+
+	    return Math.floor(this.EmailData.TotalEmails / exTimeInSeconds);
+  },
+  percentComplete: function() {
+      return (this.EmailData.TotalEmails / this.EmailData.RecipientCount  * 100).toFixed() + '%';
+  },
+  estimatedCompletion: function() {
+      var emailsLeft = this.EmailData.RecipientCount - this.EmailData.TotalEmails;
+      return emailsLeft;
+  }
 });
