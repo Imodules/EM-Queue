@@ -50,11 +50,13 @@ Template.detailRow.helpers({
 		};
 	},
 	estimatedCompletion: function () {
+		if (!this.emailsPerSecond) { return ''; };
+
 		var secondsLeft = this.emailsLeft / this.emailsPerSecond;
 		if (secondsLeft <= 0) {
 			return '';
 		}
-		
-		return moment().add(secondsLeft).fromNow(true);
+
+		return moment().startOf('day').seconds(secondsLeft).format('HH:mm:ss');
 	}
 });
