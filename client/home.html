@@ -1,5 +1,13 @@
 <template name="home">
 	<div class="container-fluid">
+		{{> charts}}
+
+		<div class="row">
+			<div class="col-xs-12">
+				{{> summary}}
+			</div>
+		</div>
+
 		<div class="row">
 			<div class="col-xs-12">
 				<div class="btn-group" data-toggle="buttons">
@@ -15,11 +23,6 @@
 		<div class="row">
 			<div class="col-xs-12">
 				{{> detailTable}}
-			</div>
-		</div>
-		<div class="row">
-			<div class="col-xs-12">
-				{{> summary}}
 			</div>
 		</div>
 	</div>

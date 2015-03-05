@@ -7,7 +7,7 @@ Meteor.startup(function () {
 	Collections.Waves.remove({});
 
 	if (Collections.Waves.find().count() === 0) {
-		for (var i=1; i<=2; i++) {
+		for (var i=1; i<=4; i++) {
 			console.log('Creating wave: ' + i);
 			Collections.Waves.insert({wave: i, name: 'Wave ' + i});
 		}

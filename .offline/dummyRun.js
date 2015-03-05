@@ -12,7 +12,11 @@ var url = 'mongodb://localhost:3001/meteor',
 			{sid: -10010, wave: 1},
 			{sid: -10011, wave: 1},
 			{sid: -10025, wave: 2},
-			{sid: -10026, wave: 2}
+			{sid: -10026, wave: 2},
+			{sid: -10027, wave: 3},
+			{sid: -10028, wave: 3},
+			{sid: -10029, wave: 4},
+			{sid: -10030, wave: 4}
 		],
 		db,
 		emailQueue,
@@ -28,7 +32,8 @@ function getRandomId(min, max) {
 }
 
 function getDummyEmail() {
-	var site = sites[getRandomId(0, 3)];
+	var siteCount = sites.length - 1;
+	var site = sites[getRandomId(0, siteCount)];
 
 	var start = moment();
 	start.minute(0);
