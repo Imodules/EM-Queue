@@ -58,7 +58,6 @@ Template.charts.rendered = function () {
 
 function chartTimer() {
 	var t = getTotalEmailsSent();
-	console.log(t);
 
 	myLineChart.removeData();
 	myLineChart.addData([t.deltaSinceLast], '');
