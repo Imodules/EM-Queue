@@ -53,10 +53,10 @@ Template.charts.rendered = function () {
 		}
 	});
 
-	setTimeout(dummyTimer, 1000);
+	setTimeout(chartTimer, 1000);
 };
 
-function dummyTimer() {
+function chartTimer() {
 	var t = getTotalEmailsSent();
 	console.log(t);
 
@@ -65,7 +65,7 @@ function dummyTimer() {
 
 	pctChart.update((t.totalEmails / t.recipientCount) * 100);
 
-	setTimeout(dummyTimer, 1000);
+	setTimeout(chartTimer, 1000);
 }
 
 var lastTotalEmailsSent = 0;
