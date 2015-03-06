@@ -16,6 +16,10 @@ Template.summaryRow.helpers({
 				complete = true,
 				totalEmails = 0;
 
+		// This method was run either during the load of the page or because our datasource
+		// reactivity fired. Either way tell the non-reactive elements on the page to start checking.
+		Session.set('dataWasUpdated', true);
+
 		Collections.EmailQueue.find({Wave: this.wave}).forEach(function (emData) {
 			if (start === null) {
 				start = emData.EmailData.StartTime;

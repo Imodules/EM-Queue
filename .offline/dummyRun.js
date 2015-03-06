@@ -21,10 +21,15 @@ var url = 'mongodb://localhost:3001/meteor',
 		db,
 		emailQueue,
 		emailsToSend = 20,
-		emailsCreated = 0;
+		emailsCreated = 0,
+		sendThreadCount = 2;
 
 if (process.argv.length >= 3) {
 	emailsToSend = parseInt(process.argv[2]);
+}
+
+if (process.argv.length >= 4) {
+	sendThreadCount = parseInt(process.argv[3]);
 }
 
 function getRandomId(min, max) {
@@ -42,7 +47,7 @@ function getDummyEmail() {
 	return {
 		_id: ++emailsCreated,
 		Wave: site.wave,
-		ThreadIndex: 1,
+		ThreadIndex: null,
 		RunDateTime: start.toDate(),
 		SiteInfoId: site.sid,
 		EmailInstanceId: getRandomId(1000, 2000),
@@ -85,7 +90,7 @@ function processPopEmail() {
 			if (doc.EmailData.PopulationStartTime === null ) {
 				emailQueue.update({_id: doc._id}, {$set: {'EmailData.PopulationStartTime': new Date()}}, function () {});
 			} else if (doc.EmailData.PopulationEndTime === null) {
-				var ranSec = getRandomId(2, 6);
+				var ranSec = getRandomId(1, 3);
 				if (moment(doc.EmailData.PopulationStartTime).add(ranSec, 's').isBefore(new Date())) {
 					emailQueue.update({_id: doc._id}, {$set: {'EmailData.PopulationEndTime': new Date(), QueueState: 1}}, function () {});
 				}
@@ -96,8 +101,10 @@ function processPopEmail() {
 
 }
 
-function processEmailSend(id) {
-	emailQueue.findOne({QueueState: 1, _id: {$ne: id}}, function (err, doc) {
+function processEmailSend(currentThread) {
+	if (currentThread >= sendThreadCount) { return; }
+
+	emailQueue.findOne({QueueState: 1, $or: [{ThreadIndex: currentThread}, {ThreadIndex: null}]}, function (err, doc) {
 		if (err) { return; }
 		if (doc) {
 			// Process records.
@@ -115,29 +122,30 @@ function processEmailSend(id) {
 				func = compEmail;
 			}
 
-			func(doc._id, emailInc, function (err) {
+			func(doc._id, currentThread, emailInc, function (err) {
 				assert.equal(err, null);
 
-				if (id === 0) {
-					processEmailSend(doc._id);
-				}
+				processEmailSend(currentThread + 1);
 			});
+		} else {
+			// Didn't find anything for this thread, move to the next.
+			processEmailSend(currentThread + 1);
 		}
 	});
 }
 
-function startEmail(id, emailInc, cb) {
-	console.log('Starting email send: ' + id);
-	emailQueue.update({_id: id}, {$set: {'EmailData.EmailStartTime': new Date()}}, cb);
+function startEmail(id, thread, emailInc, cb) {
+	console.log(thread + '> Starting email send: ' + id);
+	emailQueue.update({_id: id}, {$set: {'EmailData.EmailStartTime': new Date(), ThreadIndex: thread}}, cb);
 }
 
-function incEmail(id, emailInc, cb) {
-	console.log('Sending ' + emailInc + ' for email: ' + id);
+function incEmail(id, thread, emailInc, cb) {
+	console.log(thread + '> Email: ' + id + ' sending ' + emailInc);
 	emailQueue.update({_id: id}, {$inc: {'EmailData.TotalEmails': emailInc}}, cb);
 }
 
-function compEmail(id, emailInc, cb) {
-	console.log('Completing email send: ' + id);
+function compEmail(id, thread, emailInc, cb) {
+	console.log(thread + '> Completing email send: ' + id);
 	emailQueue.update({_id: id}, {$inc: {'EmailData.TotalEmails': emailInc},
 		$set: {
 			QueueState: 2,
@@ -150,11 +158,13 @@ function compEmail(id, emailInc, cb) {
 function processLoop() {
 	insertEmail();
 
-	emailQueue.findOne({QueueState: {$lt: 2}}, function (err, doc) {
+	emailQueue.findOne({QueueState: {$lt: 2}}, {sort: [['ThreadIndex', 'asc']]}, function (err, doc) {
 		assert.equal(err, null);
 
-		processPopEmail();
-		processEmailSend(0);
+		if (doc) {
+			processPopEmail();
+			processEmailSend(doc.ThreadIndex === null ? 0 : doc.ThreadIndex);
+		}
 
 		if (doc || emailsCreated < emailsToSend) {
 			setTimeout(processLoop, 500, db);

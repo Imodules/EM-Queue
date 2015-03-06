@@ -8,14 +8,16 @@ var myLineChart,
 		speedChart,
 		pctOptions,
 		speedOptions,
-		dataPointCount = 120;
+		dataPointCount = 120,
+		zeroDeltaCount = dataPointCount;
 
 Template.charts.rendered = function () {
 	setupLineChart(this);
 	setupSpeedChart(this);
 	setupPctChart(this);
 
-	setTimeout(chartTimer, 1000);
+	//setTimeout(chartTimer, 1000);
+	Tracker.autorun(chartTimer);
 };
 
 function setupPctChart(t) {
@@ -25,12 +27,6 @@ function setupPctChart(t) {
 		title: {
 			show: false
 		},
-		//legend: {
-		//	show: false,
-		//	formatter: function () {
-		//		return '%';
-		//	}
-		//},
 		series : [
 			{
 				name:'1',
@@ -95,7 +91,7 @@ function setupSpeedChart(t) {
 				detail : {formatter:'{value}/s'},
 				axisLine: {
 					lineStyle: {
-						color: [[0.1, '#cc0000'],[0.2, '#cccc00'],[1, '#009900']],
+						color: [[0.05, '#cc0000'],[0.1, '#cccc00'],[1, '#009900']],
 						width: 10
 					}
 				},
@@ -146,6 +142,11 @@ function setupLineChart(t) {
 }
 
 function chartTimer() {
+	if (Session.equals('dataWasUpdated', false)) {
+		// Nothing to see here.
+		return;
+	}
+
 	var t = getTotalEmailsSent();
 
 	myLineChart.removeData();
@@ -158,14 +159,52 @@ function chartTimer() {
 	speedOptions.series[0].data[0].value = t.deltaSinceLast;
 	speedChart.setOption(speedOptions, true);
 
+	if (t.deltaSinceLast === 0) {
+		// If our last delta was 0 then we need to start our count until
+		// the chart is cleared of all datapoints.
+		if(++zeroDeltaCount === dataPointCount) {
+			// No data updated and the chart has been cleared so turn off
+			// any reactivity.
+			Session.set('dataWasUpdated', false);
+
+			// Update our speed to an avg speed.
+			var diffSeconds = moment.duration(moment(t.finish).diff(t.start), 'milliseconds').asSeconds(),
+					rate = t.totalEmails / diffSeconds;
+
+			speedOptions.series[0].data[0].value = rate.toFixed(0);
+			speedChart.setOption(speedOptions, true);
+
+			return;
+		}
+	} else {
+		// Something did change, reset our delta count.
+		zeroDeltaCount = 0;
+	}
+
+	// Run the timer through again.
 	setTimeout(chartTimer, 1000);
 }
 
 var lastTotalEmailsSent = 0;
 function getTotalEmailsSent() {
 	var totalEmails = 0,
-			recipientCount = 0;
+			recipientCount = 0,
+			start,
+			finish;
+
 	Collections.EmailQueue.find({}, {reactive: false}).forEach(function (emData) {
+		if (!start) {
+			start = emData.EmailData.StartTime;
+		} else if (start > emData.EmailData.StartTime) {
+			start = emData.EmailData.StartTime;
+		}
+
+		if (!finish) {
+			finish = emData.EmailData.EndTime;
+		} else if (finish < emData.EmailData.EndTime) {
+			finish = emData.EmailData.EndTime;
+		}
+
 		recipientCount += emData.EmailData.RecipientCount;
 		totalEmails += emData.EmailData.TotalEmails + emData.EmailData.RecipientsSkipped;
 	});
@@ -182,6 +221,8 @@ function getTotalEmailsSent() {
 	return {
 		totalEmails: totalEmails,
 		recipientCount: recipientCount,
-		deltaSinceLast: deltaSinceLast
+		deltaSinceLast: deltaSinceLast,
+		start: start,
+		finish: finish
 	};
 }
