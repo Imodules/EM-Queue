@@ -5,10 +5,111 @@
 'use strict';
 var myLineChart,
 		pctChart,
+		speedChart,
+		pctOptions,
+		speedOptions,
 		dataPointCount = 120;
 
 Template.charts.rendered = function () {
-	var ctx = this.find('#myChart').getContext('2d'),
+	setupLineChart(this);
+	setupSpeedChart(this);
+	setupPctChart(this);
+
+	setTimeout(chartTimer, 1000);
+};
+
+function setupPctChart(t) {
+	pctChart = echarts.init(t.find('#pctChart'));
+
+	pctOptions = {
+		title: {
+			show: false
+		},
+		//legend: {
+		//	show: false,
+		//	formatter: function () {
+		//		return '%';
+		//	}
+		//},
+		series : [
+			{
+				name:'1',
+				type:'pie',
+				radius : [60, 90],
+				itemStyle: {
+					normal: {
+						label: {show:false},
+						labelLine: {show:false}
+					}
+				},
+				data:[
+					{
+						value: 0,
+						name: 'complete',
+						itemStyle: {
+							normal: {
+								color: '#090',
+								label: {
+									show: true,
+									position: 'center',
+									textStyle: {
+										color: '#090',
+										fontSize: 24,
+										fontWeight: 'bold'
+									},
+									formatter: function (f) {
+										return f.value + '%';
+									}
+								}
+							}
+						}
+					},
+					{
+						value:100,
+						name:'incomplete',
+						itemStyle: {
+							normal: {
+								color: '#ccc'
+							}
+						}
+					}
+				]
+			}
+		]
+	};
+
+	// Load data into the ECharts instance
+	pctChart.setOption(pctOptions);
+}
+
+function setupSpeedChart(t) {
+	speedChart = echarts.init(t.find('#speedChart'));
+
+	speedOptions = {
+		series : [
+			{
+				name:'Speed',
+				type:'gauge',
+				min: 0,
+				max: 1000,
+				detail : {formatter:'{value}/s'},
+				axisLine: {
+					lineStyle: {
+						color: [[0.1, '#cc0000'],[0.2, '#cccc00'],[1, '#009900']],
+						width: 10
+					}
+				},
+				data:[{value: 0}]
+			}
+		]
+	};
+
+	// Load data into the ECharts instance
+	speedChart.setOption(speedOptions);
+}
+
+function setupLineChart(t) {
+	var ctx = t.find('#myChart').getContext('2d'),
 			labels = [], sData = [];
 
 	for(var i=dataPointCount; i>0; i--) {
@@ -42,19 +143,7 @@ Template.charts.rendered = function () {
 		animationSteps: 60,
 		scaleBeginAtZero: true
 	});
-
-	var element = this.find('#pctChart'),
-			span = this.$('#pctChart > span');
-	pctChart = new EasyPieChart(element, {
-		barColor: '#00cc00',
-		lineWidth: 6,
-		onStart: function(value) {
-			span.html(value.toFixed(0) + '%');
-		}
-	});
-
-	setTimeout(chartTimer, 1000);
-};
+}
 
 function chartTimer() {
 	var t = getTotalEmailsSent();
@@ -62,7 +151,12 @@ function chartTimer() {
 	myLineChart.removeData();
 	myLineChart.addData([t.deltaSinceLast], '');
 
-	pctChart.update((t.totalEmails / t.recipientCount) * 100);
+	pctOptions.series[0].data[0].value = ((t.totalEmails / t.recipientCount) * 100).toFixed(1);
+	pctOptions.series[0].data[1].value = 100 - pctOptions.series[0].data[0].value;
+	pctChart.setOption(pctOptions, true);
+
+	speedOptions.series[0].data[0].value = t.deltaSinceLast;
+	speedChart.setOption(speedOptions, true);
 
 	setTimeout(chartTimer, 1000);
 }

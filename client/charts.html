@@ -1,11 +1,14 @@
 <template name="charts">
 	<div class="row">
-		<div class="col-xs-9">
-			<canvas id="myChart" style="height: 140px; width: 100%;"></canvas>
+		<div class="col-xs-6">
+			<canvas id="myChart" style="height: 240px; width: 100%;"></canvas>
 		</div>
-		<div class="col-xs-1"></div>
-		<div class="col-xs-2" style="padding: 10px;">
-			<div id="pctChart" class="percentage easyPieChart" data-percent="0" style="width: 110px; height: 110px; line-height: 110px;"><span>0%</span></div>
+
+		<div class="col-xs-3">
+			<div id="speedChart" style="height: 240px; width: 100%"></div>
+		</div>
+		<div class="col-xs-3">
+			<div id="pctChart" style="height: 240px; width: 100%"></div>
 		</div>
 	</div>
 </template>
